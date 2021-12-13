@@ -7,11 +7,15 @@ import { createQuiz, updateQuiz, getQuizById, getQuestionsByQuizId } from '../..
 
 const template = (quiz, quizEditor, updateCount) => html`
 <section id="editor">
+
     <header class="pad-large">
         <h1>${quiz ? 'Edit Quiz' : 'New Quiz'}</h1>
     </header>
+
     ${quizEditor}
+
     ${quiz ? createList(quiz.objectId, quiz.questions, updateCount) : ''}
+
 </section>`;
 
 
@@ -35,6 +39,7 @@ const quizEditorTemplate = (quiz, onSave, working) => html`
     </label>
     <input class="input submit action" type="submit" value="Save">
 </form>
+
 ${working ? html`<div class="loading-overlay working"></div>` : ''}`;
 
 

@@ -1,10 +1,9 @@
-import { html, render } from "../../lib.js"
-import { createQuestion } from "./question.js";
+import { html, render } from '../../lib.js';
+import { createQuestion } from './question.js';
+import { deleteQuestion } from '../../api/data.js';
 
 
-
-
-export const questionsList = (questions, addQuestion) => html`
+const questionList = (questions, addQuestion) => html`
 <header class="pad-large">
     <h2>Questions</h2>
 </header>
@@ -18,37 +17,49 @@ ${questions}
             Add question
         </button>
     </div>
-</article>
-`;
+</article>`;
 
-export function createList(questions) {
-    const currentQuestions = questions.map(q => createQuestion(q, removeQuestion))
 
-    const element = document.createElement('div')
-    element.className = 'pad-large alt-page'
-    update()
+export function createList(quizId, questions, updateCount) {
+    const currentQuestions = questions.map(q => createQuestion(quizId, q, removeQuestion, updateCount));
 
-    return element
+    const element = document.createElement('div');
+    element.className = 'pad-large alt-page';
+
+    update();
+
+    return element;
 
     function addQuestion() {
-        currentQuestions.push(createQuestion({
+        questions.push({
             text: '',
             answers: [],
             correctIndex: 0
-        }, removeQuestion))
+        });
+
+        currentQuestions.push(createQuestion(quizId, {
+            text: '',
+            answers: [],
+            correctIndex: 0
+        }, removeQuestion, updateCount, true));
         update();
     }
 
     function update() {
-        render(questionsList(currentQuestions.map((c, i) => c(i)), addQuestion), element)
-
+        render(questionList(currentQuestions.map((c, i) => c(i)), addQuestion), element);
     }
-    function removeQuestion(index) {
-        const confitmed = confirm('Are you sure you want to delete this question')
-        if (confitmed) {
-            currentQuestions.splice(index, 1)
-            update()
-            console.log('deleted', index)
+
+    async function removeQuestion(index, id) {
+        const confirmed = confirm('Are you sure you want to delete this question?');
+        if (confirmed) {
+            if (id) {
+                await deleteQuestion(id);
+                updateCount(-1);
+            }
+            
+            questions.splice(index, 1);
+            currentQuestions.splice(index, 1);
+            update();
         }
     }
 }

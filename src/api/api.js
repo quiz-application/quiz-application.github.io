@@ -1,89 +1,91 @@
+import { setUserData, clearUserData, getUserData } from '../util.js';
+
+
+export const settings = {
+    host: '',
+    appId: '',
+    apiKey: '',
+};
 
 async function request(url, options) {
     try {
-        const response = await fetch(url, options)
+        const response = await fetch(url, options);
+
         if (response.ok == false) {
-            const error = await response.json()
-            throw new Error(error.message)
+            const error = await response.json();
+            throw new Error(error.message);
         }
-        try{
-            return await response.json()
-        }catch(err){
-            return response
+
+        try {
+            const data = await response.json();
+            return data;
+        } catch (err) {
+            return response;
         }
     } catch (err) {
-        alert(err.message)
-        throw err
-
+        alert(err.message);
+        throw err;
     }
 }
 
-function createOptions(method = 'get', data) {
+function getOptions(method = 'get', body) {
     const options = {
         method,
         headers: {
-            'X-Parse-Application-Id': 'FGMqzVurejNw6EuPB793VfuD6Z8OO45P04okwpzO',
-            'X-Parse-REST-API-Key': '1sNLPQ1Dvf0686Qii4bg4syJdC4EqGoK4N66VX2F'
-        },
+            'X-Parse-Application-Id': settings.appId,
+            'X-Parse-REST-API-Key': settings.apiKey
+        }
     };
-    
-    const token = sessionStorage.getItem('authToken')
-    if (token != null){
-        options.headers['X-Parse-Session-Token'] = token
-    }
-    
-    if (data){
-        options.headers['Content-Type'] = 'application/json';
-        options.body = JSON.stringify(data)
+
+    const user = getUserData();
+    if (user) {
+        options.headers['X-Parse-Session-Token'] = user.sessionToken;
     }
 
-    return options
+    if (body) {
+        options.headers['Content-Type'] = 'application/json';
+        options.body = JSON.stringify(body);
+    }
+
+    return options;
 }
 
 export async function get(url) {
-    return request(url, createOptions());
+    return await request(url, getOptions());
 }
 
 export async function post(url, data) {
-    return request(url, createOptions('post', data));
+    return await request(url, getOptions('post', data));
 }
 
 export async function put(url, data) {
-    return request(url, createOptions('put', data));
+    return await request(url, getOptions('put', data));
 }
 
 export async function del(url) {
-    return request(url, createOptions('delete'));
+    return await request(url, getOptions('delete'));
 }
 
 export async function login(username, password) {
-    const result = await post('https://parseapi.back4app.com/login', { username, password })
+    const result = await post(settings.host + '/login', { username, password });
 
-    sessionStorage.setItem('username', username)
-    sessionStorage.setItem('authToken', result.sessionToken)
-    sessionStorage.setItem('userId', result.objectId)
+    setUserData(Object.assign({}, result, { username }));
 
-    return result
-
+    return result;
 }
 
-export async function register(email,username, password) {
-    const result = await post('https://parseapi.back4app.com/users', {email, username, password})
+export async function register(email, username, password) {
+    const result = await post(settings.host + '/users', { email, username, password });
 
-    sessionStorage.setItem('username', username)
-    sessionStorage.setItem('authToken', result.sessionToken)
-    sessionStorage.setItem('userId', result.objectId)
+    setUserData(Object.assign({}, result, { username }));
 
-    return result
+    return result;
 }
 
 export async function logout() {
-    const result = await post('https://parseapi.back4app.com/logout', {})
+    const result = post(settings.host + '/logout', {});
 
-    sessionStorage.removeItem('username')
-    sessionStorage.removeItem('authToken')
-    sessionStorage.removeItem('userId')
+    clearUserData();
 
-    return result
-
+    return result;
 }

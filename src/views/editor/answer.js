@@ -1,4 +1,4 @@
-import { html, render } from '../../lib.js'
+import { html, render } from '../../lib.js';
 
 
 const radioEdit = (questionIndex, index, value, checked) => html`
@@ -7,17 +7,20 @@ const radioEdit = (questionIndex, index, value, checked) => html`
         <input class="input" type="radio" name=${`question-${questionIndex}`} value=${index} ?checked=${checked} />
         <i class="fas fa-check-circle"></i>
     </label>
-    <input class="input" type="text" name=${`answer-${index}`} .value=${value} /><button data-index=${index}
-        class="input submit action"><i class="fas fa-trash-alt"></i></button>
+
+    <input class="input" type="text" name=${`answer-${index}`} .value=${value} />
+    <button data-index=${index} class="input submit action"><i class="fas fa-trash-alt"></i></button>
 </div>`;
 
 export function createAnswerList(data, questionIndex) {
-    const answers = data.answers
+    const answers = data.answers;
     const element = document.createElement('div');
-    element.addEventListener('click', onDelete)
-    element.addEventListener('change', onChange)
-    update()
-    return element
+    element.addEventListener('click', onDelete);
+    element.addEventListener('change', onChange);
+    update();
+
+    return element;
+
     function update() {
         render(html`
             ${answers.map((a, i) => radioEdit(questionIndex, i, a, data.correctIndex == i))}
@@ -26,33 +29,36 @@ export function createAnswerList(data, questionIndex) {
                     <i class="fas fa-plus-circle"></i>
                     Add answer
                 </button>
-            </div>`, element)
+            </div>`,
+            element
+        );
     }
 
     function onChange(e) {
         if (e.target.getAttribute('type') == 'text') {
-            const index = Number(e.target.name.split('-')[1])
-            answers[index] = e.target.value || ''
+            const index = Number(e.target.name.split('-')[1]);
+            answers[index] = e.target.value || '';
         } else {
-            data.correctIndex = Number(e.target.value)
+            data.correctIndex = Number(e.target.value);
         }
     }
+
     function addAnswer(e) {
         e.preventDefault();
-        answers.push('')
-        update()
+        answers.push('');
+        update();
     }
 
     function onDelete(e) {
-        let target = e.target
+        let target = e.target;
         while (target && target != element && target.tagName != 'BUTTON') {
-            target = target.parentNode
+            target = target.parentNode;
         }
-        const index = target.dataset.index
+        const index = target.dataset.index;
         if (index != undefined) {
             e.preventDefault();
-            answers.splice(index, 1)
-            update()
+            answers.splice(index, 1);
+            update();
         }
     }
 }
